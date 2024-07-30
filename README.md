@@ -1,5 +1,7 @@
-# distraction_terminator
-Created a Chaos Monkey like agent that removes disallowed programs on a given schedule
+# 🚧 distraction_terminator 🚧
+Created a Chaos Monkey like agent that removes disallowed programs on a given schedule.
+
+This is supposed to create hurdles in my way that cause me to get distracted. 
 
 # Sources
 Developed the main app using ChatGPT  
