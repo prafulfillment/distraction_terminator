@@ -7,14 +7,17 @@
     
     <key>ProgramArguments</key>
     <array>
-        <string>distraction_terminator/distraction_reduction.py</string>
+        <string>distraction_reduction.py</string>
     </array>
     
-    <key>StartInterval</key>
-    <integer>600</integer>
-    
+    <key>KeepAlive</key>
+    <dict>
+      <key>SuccessfulExit</key>
+      <false/>
+    </dict>
+
     <key>RunAtLoad</key>
-    <false/>
+    <true/>
 
     <key>StandardErrorPath</key>
     <string>/tmp/distract_free.error.log</string>

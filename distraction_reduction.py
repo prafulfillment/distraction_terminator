@@ -14,6 +14,7 @@ SYSTEM_PROCESSES = [
     "universalaccessauthwarn",
     "dock",
     "system settings",
+    "loginwindow",
 ]
 ALLOWED_PROCESSES = [
     # Enter processes you want to keep here in lower case
@@ -35,11 +36,11 @@ class CountdownApp(object):
         secs = time_left % 60 if time_left >= 0 else (-1 * time_left) % 60
 
         if mins == 0 and time_left < 0:
-            rumps.quit_application(sender=None)
-
-        self.app.title = "{:2d}:{:02d}".format(mins, secs)
-
-        sender.count += 1
+            terminate_unallowed_foreground_processes()
+            self.start_timer()
+        else:
+            self.app.title = "{:2d}:{:02d}".format(mins, secs)
+            sender.count += 1
 
     def start_timer(self):
         self.timer.count = 0
@@ -79,7 +80,5 @@ def terminate_unallowed_foreground_processes():
 
 
 if __name__ == "__main__":
-    terminate_unallowed_foreground_processes()
-    # Countdown wasn't working for me 
-    # app = CountdownApp()
-    # app.run()
+    app = CountdownApp()
+    app.run()
