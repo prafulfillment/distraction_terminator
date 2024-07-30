@@ -1,6 +1,7 @@
 #!/opt/homebrew/Caskroom/miniconda/base/envs/distraction_free/bin/python3
 
 import os
+import subprocess
 
 import psutil
 import rumps
@@ -64,6 +65,14 @@ class CountdownApp(object):
     def run(self):
         self.app.run()
 
+
+def bring_todo_to_foreground():
+    applescript_code = """
+tell application "Notes"
+    activate
+end tell
+"""
+    subprocess.run(['osascript', '-e', applescript_code])
 
 def get_foreground_processes():
     """Return a set of process names that are currently visible on screen."""
