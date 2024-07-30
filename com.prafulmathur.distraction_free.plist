@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.prafulmathur.distraction_free</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>distraction_terminator/distraction_reduction.py</string>
+    </array>
+    
+    <key>StartInterval</key>
+    <integer>600</integer>
+    
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardErrorPath</key>
+    <string>/tmp/distract_free.error.log</string>
+    <key>StandardOutPath</key>
+    <string>/tmp/distract_free.out.log</string>
+</dict>
+</plist>
+
