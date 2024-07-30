@@ -44,9 +44,7 @@ class CountdownApp(object):
         secs = time_left % 60 if time_left >= 0 else (-1 * time_left) % 60
 
         if self.cool_off:
-            for app_name in COOL_OFF_APPS:
-                if is_app_running(app_name):
-                    kill_app(app_name)
+            terminate_unallowed_foreground_processes()
 
         if mins == 0 and time_left < 0:
             terminate_unallowed_foreground_processes()
@@ -93,30 +91,6 @@ def terminate_unallowed_foreground_processes():
                     proc.wait()  # Wait for process termination
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
-
-def is_app_running(app_name):
-    try:
-        # Check if the application is running
-        result = subprocess.run(
-            ['pgrep', '-f', app_name],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        return result.returncode == 0
-    except Exception as e:
-        print(f"An error occurred while checking the application: {e}")
-        return False
-
-def kill_app(app_name):
-    try:
-        # Kill the application
-        subprocess.run(['pkill', '-f', app_name], check=True)
-        print(f"Blocking {app_name}")
-    except subprocess.CalledProcessError as e:
-        print(f"An error occurred while killing the application: {e}")
-
-        
 
 
 if __name__ == "__main__":
