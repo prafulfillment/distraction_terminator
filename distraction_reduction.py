@@ -18,12 +18,11 @@ SYSTEM_PROCESSES = [
     "loginwindow",
 ]
 ALLOWED_PROCESSES = [
-    # Add in allowed processes here
-]
+TODO_APP = "Notes"
 
 TIMER_COUNTDOWN = 60 * 15
 COOL_OFF_TIMER_COUNTDOWN = 60 * 10
-NOTES_COUNTDOWN = 60 * 2
+TODO_COUNTDOWN = 60 * 2
 
 
 class CountdownApp(object):
@@ -47,7 +46,7 @@ class CountdownApp(object):
 
         if self.cool_off:
             terminate_unallowed_foreground_processes()
-            if time_left < NOTES_COUNTDOWN:
+            if time_left < TODO_COUNTDOWN:
                 bring_todo_to_foreground()
 
         if mins == 0 and time_left < 0:
@@ -71,8 +70,8 @@ class CountdownApp(object):
 
 
 def bring_todo_to_foreground():
-    applescript_code = """
-tell application "Notes"
+    applescript_code = f"""
+tell application "{TODO_APP}"
     activate
 end tell
 """
