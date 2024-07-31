@@ -18,24 +18,25 @@ SYSTEM_PROCESSES = [
     "loginwindow",
 ]
 ALLOWED_PROCESSES = [
-COOL_OFF_APPS = [
-    # Add cool off apps you want to prevent using immediately after
+    # Add in allowed processes here
 ]
-TIMER_COUNTDOWN = 60 * 10
-COOL_OFF_TIMER_COUNTDOWN = 60 * 15
+
+TIMER_COUNTDOWN = 60 * 15
+COOL_OFF_TIMER_COUNTDOWN = 60 * 10
+NOTES_COUNTDOWN = 60 * 2
 
 
 class CountdownApp(object):
     def __init__(self):
         self.config = {
-           "app_name": "Countdown", 
-           "interval": TIMER_COUNTDOWN,
-           "cooloff_interval": COOL_OFF_TIMER_COUNTDOWN
+            "app_name": "Countdown",
+            "interval": TIMER_COUNTDOWN,
+            "cooloff_interval": COOL_OFF_TIMER_COUNTDOWN,
         }
         self.app = rumps.App(self.config["app_name"])
         self.timer = rumps.Timer(self.on_tick, 1)
         self.interval = self.config["interval"]
-        self.cool_off = False
+        self.cool_off = True
         self.cool_off_interval = self.config["cooloff_interval"]
         self.start_timer()
 
@@ -46,8 +47,11 @@ class CountdownApp(object):
 
         if self.cool_off:
             terminate_unallowed_foreground_processes()
+            if time_left < NOTES_COUNTDOWN:
+                bring_todo_to_foreground()
 
         if mins == 0 and time_left < 0:
+            bring_todo_to_foreground()
             terminate_unallowed_foreground_processes()
             self.cool_off = not self.cool_off
             self.start_timer()
@@ -72,7 +76,8 @@ tell application "Notes"
     activate
 end tell
 """
-    subprocess.run(['osascript', '-e', applescript_code])
+    subprocess.run(["osascript", "-e", applescript_code])
+
 
 def get_foreground_processes():
     """Return a set of process names that are currently visible on screen."""
