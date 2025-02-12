@@ -6,6 +6,7 @@ import subprocess
 import psutil
 import rumps
 from Quartz import CGWindowListCopyWindowInfo, kCGWindowListOptionOnScreenOnly
+import time
 
 # List of allowed process names for MacOSX
 SYSTEM_PROCESSES = [
@@ -18,25 +19,21 @@ SYSTEM_PROCESSES = [
     "loginwindow",
 ]
 ALLOWED_PROCESSES = [
-TODO_APP = "Notes"
 
-TIMER_COUNTDOWN = 60 * 15
-COOL_OFF_TIMER_COUNTDOWN = 60 * 10
-TODO_COUNTDOWN = 60 * 2
-
+APP_NAME = "Countdown"
+TIMER_COUNTDOWN = 60 * 70
+COOL_OFF_TIMER_COUNTDOWN = TIMER_COUNTDOWN // 2
 
 class CountdownApp(object):
     def __init__(self):
-        self.config = {
-            "app_name": "Countdown",
-            "interval": TIMER_COUNTDOWN,
-            "cooloff_interval": COOL_OFF_TIMER_COUNTDOWN,
-        }
-        self.app = rumps.App(self.config["app_name"])
+        self.app = rumps.App(APP_NAME)
+        self.interval = TIMER_COUNTDOWN
+        self.cool_off_interval = COOL_OFF_TIMER_COUNTDOWN
+
         self.timer = rumps.Timer(self.on_tick, 1)
-        self.interval = self.config["interval"]
         self.cool_off = True
-        self.cool_off_interval = self.config["cooloff_interval"]
+        self.pause = False
+
         self.start_timer()
 
     def on_tick(self, sender):
@@ -44,21 +41,32 @@ class CountdownApp(object):
         mins = time_left // 60 if time_left >= 0 else time_left // 60 + 1
         secs = time_left % 60 if time_left >= 0 else (-1 * time_left) % 60
 
+        self.pause = False
+        if len(PAUSING_PROCESSES) > 0:
+            all_processes = [item.name() for item in psutil.process_iter(['name'])]
+            for process, count in PAUSING_PROCESSES:
+                is_process_running = all_processes.count(process) == count
+                if is_process_running:
+                    self.pause = True
+
         if self.cool_off:
-            terminate_unallowed_foreground_processes()
-            if time_left < TODO_COUNTDOWN:
-                bring_todo_to_foreground()
+            if (time_left % 19 == 0) and (not self.pause):
+                terminate_then_kill()
 
         if mins == 0 and time_left < 0:
             bring_todo_to_foreground()
-            terminate_unallowed_foreground_processes()
+            if not self.pause:
+                terminate_then_kill()
             self.cool_off = not self.cool_off
             self.start_timer()
         else:
             self.app.title = "{:2d}:{:02d}".format(mins, secs)
-            if self.cool_off:
+            if self.pause:
+                self.app.title = "⏸" + self.app.title
+            elif self.cool_off:
                 self.app.title = "❄" + self.app.title
-            sender.count += 1
+            if not self.pause:
+                sender.count += 1
 
     def start_timer(self):
         self.timer.count = 0
@@ -71,7 +79,8 @@ class CountdownApp(object):
 
 def bring_todo_to_foreground():
     applescript_code = f"""
-tell application "{TODO_APP}"
+tell application "Notes"
+    show note "TODO"
     activate
 end tell
 """
@@ -89,8 +98,9 @@ def get_foreground_processes():
     return foreground_processes
 
 
-def terminate_unallowed_foreground_processes():
+def terminate_unallowed_foreground_processes(should_kill=False):
     foreground_processes = get_foreground_processes()
+
     for proc in psutil.process_iter(["pid", "name"]):
         try:
             process_name = proc.info["name"]
@@ -100,11 +110,17 @@ def terminate_unallowed_foreground_processes():
                     for allowed_name in (SYSTEM_PROCESSES + ALLOWED_PROCESSES)
                 ):
                     print(f"Terminating {process_name} (PID: {proc.info['pid']})")
-                    proc.terminate()
-                    proc.wait()  # Wait for process termination
+                    if should_kill:
+                        proc.kill()
+                    else:
+                        proc.terminate()
+                        proc.wait(timeout=5)
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
 
+def terminate_then_kill():
+    terminate_unallowed_foreground_processes()
+    terminate_unallowed_foreground_processes(should_kill=True)
 
 if __name__ == "__main__":
     app = CountdownApp()
